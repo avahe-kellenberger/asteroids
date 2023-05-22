@@ -23,19 +23,24 @@ Game.scene.camera = camera
 
 layer.addChild(player)
 
-const
-  maxSpeed = 400.0
-  acceleration = 100.0
-  jumpForce = -350.0
-
 # TODO:
 # Movement
 # Player facing cursor
 # Hide cursor (replace with sprite)
 
+player.onUpdate = proc(this: Node, deltaTime: float) =
+  # Face player toward cursor
+  let mouseLocInWorld = camera.screenToWorldCoord(Input.mouseLocation())
+  let angleToMouse = player.getLocation().getAngleTo(mouseLocInWorld)
+  player.rotation = angleToMouse
+  player.sprite.rotation = angleToMouse
+
 Input.onKeyEvent:
-  if key == K_ESCAPE:
-    Game.stop()
+  case key:
+    of K_ESCAPE:
+      Game.stop()
+    else:
+      discard
 
 Game.start()
 

@@ -1,7 +1,7 @@
 import shade
 
 type Player* = ref object of PhysicsBody
-  sprite: Sprite
+  sprite*: Sprite
 
 proc createCollisionShape(): CollisionShape =
   result = newCollisionShape(aabb(-8, -13, 8, 13))
