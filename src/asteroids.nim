@@ -1,13 +1,15 @@
 import shade
 import asteroidspkg/player as playerModule
+import asteroidspkg/stars/star as starModule
 
 initEngineSingleton(
   "Asteroids",
   800,
   600,
-  fullscreen = false,
-  clearColor = newColor(91, 188, 228)
+  fullscreen = false
 )
+
+Game.window.setWindowGrab(true)
 
 let layer = newPhysicsLayer(gravity = VECTOR_ZERO)
 Game.scene.addLayer layer
@@ -20,13 +22,27 @@ player.y = 640
 let camera = newCamera(player, 0.25, easeInAndOutQuadratic)
 camera.z = 0.55
 Game.scene.camera = camera
+camera.setLocation(player.x, player.y)
 
 layer.addChild(player)
 
+let star = newStar()
+star.setLocation(player.x + 10.0, player.y)
+star.sprite.scale = vector(5.0, 5.0)
+layer.addChild(star)
+
 # TODO:
-# Movement
-# Player facing cursor
-# Hide cursor (replace with sprite)
+# Player movement
+
+# Load custom cursor
+block:
+  let cursorSurface = loadSurface("assets/sprites/cursor.png")
+  if cursorSurface == nil:
+    raise newException(Exception, "Failed to load cursor image!")
+
+  let cursor = createColorCursor(cursorSurface, cursorSurface.w div 2, cursorSurface.h div 2)
+  setCursor(cursor)
+  freeSurface(cursorSurface)
 
 player.onUpdate = proc(this: Node, deltaTime: float) =
   # Face player toward cursor

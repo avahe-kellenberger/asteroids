@@ -13,6 +13,9 @@ requires "https://github.com/avahe-kellenberger/shade"
 task runr, "Runs the game":
   exec "nim r -d:release src/asteroids.nim"
 
+task debug, "Runs the game in debug mode":
+  exec "nim r -d:debug src/asteroids.nim"
+
 task release, "Builds the game":
-  exec "nim r -d:release src/asteroids.nim -o:./bin/asteroids"
+  exec "nim c -d:release src/asteroids.nim -o:./bin/asteroids"
 
