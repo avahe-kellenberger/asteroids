@@ -27,8 +27,7 @@ camera.setLocation(player.x, player.y)
 layer.addChild(player)
 
 let star = newStar()
-star.setLocation(player.x + 10.0, player.y)
-star.sprite.scale = vector(5.0, 5.0)
+star.setLocation(player.x + 20.0, player.y + 40.0)
 layer.addChild(star)
 
 # TODO:

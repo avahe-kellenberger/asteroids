@@ -12,15 +12,11 @@ proc createShineAnimation(this: Star): Animation =
   # Create each frame of the animation.
   var frames: seq[Keyframe[IVector]]
 
-  # TODO: Animation is fucked up
-  # frame indicies are correct,
-  # hopefully not a bug in the engine's animation code.
-
   # Each frame from start to end.
   for y in countup(0, this.sprite.spritesheet.rows - 1):
     for x in countup(0, this.sprite.spritesheet.cols - 1):
-      let frameIndex = x + (y * this.sprite.spritesheet.cols)
-      let frame = (ivector(x, y), float(frameIndex) * frameDuration)
+      let time = float(frames.len) * frameDuration
+      let frame = (ivector(x, y), time)
       frames.add(frame)
 
   # Loop back from the end to the start (not including first and last frames).
@@ -31,14 +27,15 @@ proc createShineAnimation(this: Star): Animation =
       if frameIndex == 0 or frameIndex == this.sprite.numFrames - 1:
         continue
 
-      let frame = (ivector(x, y), float(frameIndex) * frameDuration)
+      let time = float(frames.len) * frameDuration
+      let frame = (ivector(x, y), time)
       frames.add(frame)
 
   let animDuration = float(frames.len) * frameDuration
   result = newAnimation(animDuration, true)
 
   let self = result
-  self.addNewAnimationTrack(this.sprite.frameCoords, frames)
+  self.addNewAnimationTrack(this.sprite.frameCoords, frames, ease = lerpDiscrete)
 
 proc newStar*(): Star =
   result = Star()
