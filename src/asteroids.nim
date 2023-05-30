@@ -4,8 +4,8 @@ import asteroidspkg/stars/star as starModule
 
 initEngineSingleton(
   "Asteroids",
-  800,
-  600,
+  1200,
+  900,
   fullscreen = false
 )
 
