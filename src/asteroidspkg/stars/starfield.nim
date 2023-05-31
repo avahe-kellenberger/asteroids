@@ -10,6 +10,8 @@ const
   SPAWN_INTERVAL = vector(10, 20)
   # The distance over which the star layers should fade in.
   FADE_DISTANCE = 50.0
+  # Maximum speed to move the star layers (simulated camera movement)
+  MAX_LAYER_Z_SPEED = 0.07
 
 template calculateStarsToCreate(starArea: AABB): int =
   int(starArea.getArea() * STAR_DENSITY)
@@ -18,6 +20,8 @@ type StarField = ref object of Node
   isAnimating*: bool
   camera: Camera
   layers: seq[Layer]
+  layerSpeed: float
+  layerSpeedTween: Tween
   starLayerPool: ObjectPool[Layer]
   starPool: ObjectPool[Star]
 
@@ -39,6 +43,19 @@ proc newStarField*(camera: Camera): StarField =
   result.starArea = calculateStarArea(camera)
 
   result.starsToCreate = calculateStarsToCreate(result.starArea)
+
+  let self = result
+  result.layerSpeedTween = newTween(
+    2.0,
+    (proc(this: Tween, deltaTime: float) =
+      let completionRatio = min(1.0, this.elapsedTime / this.duration)
+      if self.isAnimating:
+        self.layerSpeed = easeInQuadratic(0.0, -MAX_LAYER_Z_SPEED, completionRatio)
+      else:
+        self.layerSpeed = easeInQuadratic(self.layerSpeed, 0, completionRatio)
+    ),
+    proc(this: Tween) = discard
+  )
 
 template calculateNextLayerInterval(): float =
   SPAWN_INTERVAL.random()
@@ -112,11 +129,24 @@ proc translateZ*(this: StarField, deltaZ: float) =
   for layer in this.layers:
     layer.z = (layer.z + deltaZ)
 
+proc startMoving*(this: StarField) =
+  this.isAnimating = true
+  this.layerSpeedTween.elapsedTime = 0
+  this.layerSpeedTween.completed = false
+
+proc stopMoving*(this: StarField) =
+  this.isAnimating = false
+  this.layerSpeedTween.elapsedTime = 0
+  this.layerSpeedTween.completed = false
+
 method update*(this: StarField, deltaTime: float) =
   procCall Node(this).update(deltaTime)
 
-  if this.isAnimating:
-    this.translateZ(-0.07)
+  if not this.layerSpeedTween.completed:
+    this.layerSpeedTween.update(deltaTime)
+
+  if this.isAnimating or not this.layerSpeedTween.completed:
+    this.translateZ(this.layerSpeed)
     this.pruneLayers()
     this.spawnLayers()
 

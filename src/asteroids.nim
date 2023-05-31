@@ -35,8 +35,7 @@ let mainMenu = newMainMenu()
 root.addChild(mainMenu)
 
 mainMenu.playText.onPressed:
-  # TODO: Turn this into a smooth stopping animation (tween using starfield.translateZ)
-  starfield.isAnimating = false
+  starfield.stopMoving()
 
 mainMenu.exitText.onPressed:
   Game.stop()
