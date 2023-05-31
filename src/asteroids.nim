@@ -2,6 +2,7 @@ import shade
 import asteroidspkg/player as playerModule
 import asteroidspkg/stars/star as starModule
 import asteroidspkg/stars/starfield as starfieldModule
+import asteroidspkg/ui/mainmenu as mainmenuModule
 
 initEngineSingleton(
   "Asteroids",
@@ -10,25 +11,35 @@ initEngineSingleton(
   fullscreen = true
 )
 
-Game.window.setWindowGrab(true)
-
 let layer = newPhysicsLayer(gravity = VECTOR_ZERO)
 Game.scene.addLayer layer
 
 let player = newPlayer()
 player.x = 1920 / 2
 player.y = 640
+# TODO: Add the player once the game has started.
+# layer.addChild(player)
 
 # Track the player with the camera.
 let camera = newCamera(player, 0.25, easeInAndOutQuadratic)
 Game.scene.camera = camera
 camera.setLocation(player.x, player.y)
 
-# TODO: Add the player once the game has started.
-# layer.addChild(player)
-
 let starfield = newStarField(camera)
 layer.addChild(starfield)
+
+let root = newUIComponent()
+Game.setUIRoot(root)
+
+let mainMenu = newMainMenu()
+root.addChild(mainMenu)
+
+mainMenu.playText.onPressed:
+  # TODO: Turn this into a smooth stopping animation (tween using starfield.translateZ)
+  starfield.isAnimating = false
+
+mainMenu.exitText.onPressed:
+  Game.stop()
 
 # Load custom cursor
 block:

@@ -15,6 +15,7 @@ template calculateStarsToCreate(starArea: AABB): int =
   int(starArea.getArea() * STAR_DENSITY)
 
 type StarField = ref object of Node
+  isAnimating*: bool
   camera: Camera
   layers: seq[Layer]
   starLayerPool: ObjectPool[Layer]
@@ -31,6 +32,7 @@ proc createStarLayer(): Layer
 proc newStarField*(camera: Camera): StarField =
   result = StarField()
   initNode(Node result)
+  result.isAnimating = true
   result.camera = camera
   result.starLayerPool = newObjectPool[Layer](createStarLayer)
   result.starPool = newObjectPool[Star](newStar)
@@ -113,13 +115,13 @@ proc translateZ*(this: StarField, deltaZ: float) =
 method update*(this: StarField, deltaTime: float) =
   procCall Node(this).update(deltaTime)
 
-  this.pruneLayers()
-  this.spawnLayers()
+  if this.isAnimating:
+    this.translateZ(-0.07)
+    this.pruneLayers()
+    this.spawnLayers()
 
   for layer in this.layers:
     layer.update(deltaTime)
-
-  this.translateZ(-0.07)
 
 StarField.renderAsNodeChild:
   for i in countdown(this.layers.len - 1, 0):
