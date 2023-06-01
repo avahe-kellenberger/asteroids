@@ -1,5 +1,6 @@
 import shade
 import common
+import ../controls
 
 const
   buttonColor = newColor(0, 60, 179)
@@ -11,19 +12,18 @@ proc `$`(key: Keycode): string =
   return $getScancodeName(getScancodeFromKey(key))
 
 type
-  Control = ref object
-    name: string
-    key: KeyCode
+  ControlComponent = ref object
+    control: Control
     button: UITextComponent
 
   ControlsMenu* = ref object of UIComponent
-    thrustControl: Control
-    slowDownControl: Control
+    thrustControl: ControlComponent
+    slowDownControl: ControlComponent
     # "Selected" meaning we're waiting for a keypress to register for the control.
-    selectedControl: Control
-    allControls: seq[Control]
+    selectedControl: ControlComponent
+    allControls: seq[ControlComponent]
 
-proc createControl(this: ControlsMenu, name: string, currentKey: Keycode): Control
+proc createControlComponent(this: ControlsMenu, control: Control): ControlComponent
 proc configureControlInputListener(this: ControlsMenu, returnToMainMenu: proc)
 
 proc newControlsMenu*(returnToMainMenu: proc): ControlsMenu =
@@ -38,8 +38,8 @@ proc newControlsMenu*(returnToMainMenu: proc): ControlsMenu =
   title.margin = margin(12, 12, 12, 72)
   result.addChild(title)
 
-  result.thrustControl = result.createControl("Thrust", K_W)
-  result.slowDownControl = result.createControl("Slow Down", K_S)
+  result.thrustControl = result.createControlComponent(thrustControl)
+  result.slowDownControl = result.createControlComponent(slowDownControl)
 
   result.configureControlInputListener(returnToMainMenu)
 
@@ -61,6 +61,7 @@ proc configureControlInputListener(this: ControlsMenu, returnToMainMenu: proc) =
         button.borderColor = buttonBorderColor
         this.selectedControl = nil
       else:
+        this.selectedControl.control.key = key
         button.text = $key
         button.determineWidthAndHeight()
         let square = max(button.width.pixelValue, button.height.pixelValue)
@@ -72,8 +73,8 @@ proc configureControlInputListener(this: ControlsMenu, returnToMainMenu: proc) =
         this.selectedControl = nil
   )
 
-proc createControl(this: ControlsMenu, name: string, currentKey: Keycode): Control =
-  result = Control(name: name, key: currentKey)
+proc createControlComponent(this: ControlsMenu, control: Control): ControlComponent =
+  result = ControlComponent(control: control)
 
   let container = newUIComponent()
   container.stackDirection = StackDirection.Horizontal
@@ -83,14 +84,14 @@ proc createControl(this: ControlsMenu, name: string, currentKey: Keycode): Contr
   container.width = ratio(0.3)
   this.addChild(container)
 
-  let keyText = newText(getMenuItemFont(), name & ":", WHITE)
+  let keyText = newText(getMenuItemFont(), control.name & ":", WHITE)
   container.addChild(keyText)
   container.height = keyText.height
 
   # Spacer to nicely align buttons
   container.addChild(newUIComponent())
 
-  let keyButton = newText(getMenuItemFont(), $currentKey, WHITE)
+  let keyButton = newText(getMenuItemFont(), $control.key, WHITE)
   keyButton.textAlignHorizontal = TextAlignment.Center
   keyButton.textAlignVertical = TextAlignment.Center
   result.button = keyButton

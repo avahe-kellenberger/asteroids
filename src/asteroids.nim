@@ -19,7 +19,7 @@ initEngineSingleton(
 let layer = newPhysicsLayer(gravity = VECTOR_ZERO)
 Game.scene.addLayer layer
 
-let camera = newCamera(nil, 0.25, easeInAndOutQuadratic)
+let camera = newCamera(nil, 0.5, easeInAndOutQuadratic)
 Game.scene.camera = camera
 
 let player = newPlayer()

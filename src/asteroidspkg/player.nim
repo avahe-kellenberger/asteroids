@@ -1,6 +1,11 @@
 import shade
+import controls
 
-const playerScale = 2.0
+const
+  playerScale = 2.0
+  acceleration = 100.0
+  decceleration = 20.0
+  maxSpeed = 10_000.0
 
 type Player* = ref object of PhysicsBody
   sprite*: Sprite
@@ -19,16 +24,25 @@ proc newPlayer*(): Player =
   var collisionShape = createCollisionShape(playerScale)
   initPhysicsBody(PhysicsBody(result), collisionShape)
 
-template rotateToCursor(this: Player) =
+method update*(this: Player, deltaTime: float) =
+  procCall PhysicsBody(this).update(deltaTime)
+
+  # Rotate player to cursor
   let mouseLocInWorld = Game.scene.camera.screenToWorldCoord(Input.mouseLocation())
-  let angleToMouse = this.getLocation().getAngleTo(mouseLocInWorld)
+  let angleRadiansToMouse = this.getLocation().getAngleRadiansTo(mouseLocInWorld)
+  let angleToMouse = angleRadiansToMouse.toAngle()
   this.rotation = angleToMouse
   this.sprite.rotation = angleToMouse
 
-method update*(this: Player, deltaTime: float) =
-  procCall Node(this).update(deltaTime)
+  if Input.isKeyPressed(slowDownControl.key):
+    this.velocity *= 0.992
+    if this.velocity.getMagnitude() <= (maxSpeed / 50):
+      this.velocity = VECTOR_ZERO
 
-  this.rotateToCursor()
+  elif Input.isKeyPressed(thrustControl.key):
+    this.velocity += fromRadians(angleRadiansToMouse) * acceleration
+    this.velocity = this.velocity.maxMagnitude(maxSpeed)
+
 
 Player.renderAsChildOf(PhysicsBody):
   this.sprite.render(ctx, this.x + offsetX, this.y + offsetY)
