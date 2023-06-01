@@ -4,14 +4,30 @@ import common
 const
   buttonColor = newColor(0, 60, 179)
   buttonBorderColor = newColor(51, 87, 255)
+  buttonSelectedColor = newColor(179, 60, 0)
+  buttonSelectedBorderColor = newColor(255, 87, 0)
 
-type ControlsMenu* = ref object of UIComponent
-  thrustKey: Keycode
+proc `$`(key: Keycode): string =
+  return $getScancodeName(getScancodeFromKey(key))
 
-proc addControl(this: ControlsMenu, name: string, currentKey: Keycode, onKeycodeSet: proc(key: Keycode))
+type
+  Control = ref object
+    name: string
+    key: KeyCode
+    button: UITextComponent
+
+  ControlsMenu* = ref object of UIComponent
+    thrustControl: Control
+    slowDownControl: Control
+    # "Selected" meaning we're waiting for a keypress to register for the control.
+    selectedControl: Control
+    allControls: seq[Control]
+
+proc createControl(this: ControlsMenu, name: string, currentKey: Keycode): Control
+proc configureControlInputListener(this: ControlsMenu)
 
 proc newControlsMenu*(thrustKey: Keycode = K_W): ControlsMenu =
-  result = ControlsMenu(thrustKey: thrustKey)
+  result = ControlsMenu()
   initUIComponent(UIComponent result)
   result.stackDirection = StackDirection.Vertical
   result.alignHorizontal = Alignment.Center
@@ -21,13 +37,32 @@ proc newControlsMenu*(thrustKey: Keycode = K_W): ControlsMenu =
   title.margin = 12.0
   result.addChild(title)
 
-  let self = result
-  result.addControl("Thrust", thrustKey, proc(key: Keycode) = self.thrustKey = key)
+  result.thrustControl = result.createControl("Thrust", thrustKey)
+  result.slowDownControl = result.createControl("Slow Down", K_S)
 
-proc `$`(key: Keycode): string =
-  return $getScancodeName(getScancodeFromKey(key))
+  result.configureControlInputListener()
 
-proc addControl(this: ControlsMenu, name: string, currentKey: Keycode, onKeycodeSet: proc(key: Keycode)) =
+proc configureControlInputListener(this: ControlsMenu) =
+  Input.addKeyboardEventListener(proc(key: Keycode, state: KeyState) =
+    if this.selectedControl == nil:
+      return
+
+    if state.justPressed and key != K_ESCAPE:
+      let button = this.selectedControl.button
+      button.text = $key
+      button.determineWidthAndHeight()
+      let square = max(button.width.pixelValue, button.height.pixelValue)
+      button.width = square
+      button.height = square
+      button.backgroundColor = buttonColor
+      button.borderColor = buttonBorderColor
+      # Deselect the control.
+      this.selectedControl = nil
+  )
+
+proc createControl(this: ControlsMenu, name: string, currentKey: Keycode): Control =
+  result = Control(name: name, key: currentKey)
+
   let container = newUIComponent()
   container.stackDirection = StackDirection.Horizontal
   container.alignHorizontal = Alignment.SpaceEvenly
@@ -36,12 +71,18 @@ proc addControl(this: ControlsMenu, name: string, currentKey: Keycode, onKeycode
   container.width = ratio(0.5)
   this.addChild(container)
 
+  # TODO: Used for debugging, delete later
+  container.borderWidth = 2.0
+  container.borderColor = RED
+
   let keyText = newText(getMenuItemFont(), name & ":", WHITE)
   container.addChild(keyText)
+  container.height = keyText.height
 
   let keyButton = newText(getMenuItemFont(), $currentKey, WHITE)
   keyButton.textAlignHorizontal = TextAlignment.Center
   keyButton.textAlignVertical = TextAlignment.Center
+  result.button = keyButton
 
   let square = max(keyButton.width.pixelValue, keyButton.height.pixelValue)
   keyButton.width = square
@@ -50,5 +91,17 @@ proc addControl(this: ControlsMenu, name: string, currentKey: Keycode, onKeycode
   keyButton.borderWidth = 2.0
   keyButton.borderColor = buttonBorderColor
 
+  let self = result
+  keyButton.onPressed:
+    for control in this.allControls:
+      control.button.backgroundColor = buttonColor
+      control.button.borderColor = buttonBorderColor
+
+    keyButton.backgroundColor = buttonSelectedColor
+    keyButton.borderColor = buttonSelectedBorderColor
+    this.selectedControl = self
+
   container.addChild(keyButton)
+
+  this.allControls.add(result)
 

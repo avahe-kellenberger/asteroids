@@ -31,6 +31,7 @@ proc newMainMenu*(): MainMenu =
 
   let self = result
   Input.onKeyEvent:
+    # TODO: We need to allow submenus to use the escape key
     if key == K_ESCAPE and state.justPressed:
       self.goToMainMenu()
 
