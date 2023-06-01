@@ -19,6 +19,17 @@ proc newPlayer*(): Player =
   var collisionShape = createCollisionShape(playerScale)
   initPhysicsBody(PhysicsBody(result), collisionShape)
 
+template rotateToCursor(this: Player) =
+  let mouseLocInWorld = Game.scene.camera.screenToWorldCoord(Input.mouseLocation())
+  let angleToMouse = this.getLocation().getAngleTo(mouseLocInWorld)
+  this.rotation = angleToMouse
+  this.sprite.rotation = angleToMouse
+
+method update*(this: Player, deltaTime: float) =
+  procCall Node(this).update(deltaTime)
+
+  this.rotateToCursor()
+
 Player.renderAsChildOf(PhysicsBody):
   this.sprite.render(ctx, this.x + offsetX, this.y + offsetY)
 

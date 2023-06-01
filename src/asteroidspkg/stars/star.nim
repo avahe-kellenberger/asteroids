@@ -1,4 +1,5 @@
 import shade
+import std/random
 
 const frameDuration = 0.07
 
@@ -46,10 +47,13 @@ proc newStar*(): Star =
     starImageId = Images.loadImage("assets/sprites/star.png", FILTER_NEAREST).id
   result.sprite = newSprite(Images[starImageId], 4, 3)
 
+  let shineAnimation = result.createShineAnimation()
+
   const animName = "shine"
   result.animPlayer = newAnimationPlayer()
-  result.animPlayer.addAnimation(animName, result.createShineAnimation())
+  result.animPlayer.addAnimation(animName, shineAnimation)
   result.animPlayer.play(animName)
+  result.animPlayer.currentAnimationTime = rand(shineAnimation.duration)
 
 method update*(this: Star, deltaTime: float) =
   procCall Node(this).update(deltaTime)
