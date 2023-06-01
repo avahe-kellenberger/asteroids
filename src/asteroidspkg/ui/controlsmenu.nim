@@ -24,9 +24,9 @@ type
     allControls: seq[Control]
 
 proc createControl(this: ControlsMenu, name: string, currentKey: Keycode): Control
-proc configureControlInputListener(this: ControlsMenu)
+proc configureControlInputListener(this: ControlsMenu, returnToMainMenu: proc)
 
-proc newControlsMenu*(thrustKey: Keycode = K_W): ControlsMenu =
+proc newControlsMenu*(returnToMainMenu: proc): ControlsMenu =
   result = ControlsMenu()
   initUIComponent(UIComponent result)
   result.stackDirection = StackDirection.Vertical
@@ -38,27 +38,38 @@ proc newControlsMenu*(thrustKey: Keycode = K_W): ControlsMenu =
   title.margin = margin(12, 12, 12, 72)
   result.addChild(title)
 
-  result.thrustControl = result.createControl("Thrust", thrustKey)
+  result.thrustControl = result.createControl("Thrust", K_W)
   result.slowDownControl = result.createControl("Slow Down", K_S)
 
-  result.configureControlInputListener()
+  result.configureControlInputListener(returnToMainMenu)
 
-proc configureControlInputListener(this: ControlsMenu) =
+proc configureControlInputListener(this: ControlsMenu, returnToMainMenu: proc) =
   Input.addKeyboardEventListener(proc(key: Keycode, state: KeyState) =
-    if this.selectedControl == nil:
+    if not state.justPressed:
       return
 
-    if state.justPressed and key != K_ESCAPE:
+    if this.selectedControl == nil:
+      if key == K_ESCAPE:
+        returnToMainMenu()
+      return
+
+    if state.justPressed:
       let button = this.selectedControl.button
-      button.text = $key
-      button.determineWidthAndHeight()
-      let square = max(button.width.pixelValue, button.height.pixelValue)
-      button.width = square
-      button.height = square
-      button.backgroundColor = buttonColor
-      button.borderColor = buttonBorderColor
-      # Deselect the control.
-      this.selectedControl = nil
+      if key == K_ESCAPE:
+        # Deselect key
+        button.backgroundColor = buttonColor
+        button.borderColor = buttonBorderColor
+        this.selectedControl = nil
+      else:
+        button.text = $key
+        button.determineWidthAndHeight()
+        let square = max(button.width.pixelValue, button.height.pixelValue)
+        button.width = square
+        button.height = square
+        button.backgroundColor = buttonColor
+        button.borderColor = buttonBorderColor
+        # Deselect the control.
+        this.selectedControl = nil
   )
 
 proc createControl(this: ControlsMenu, name: string, currentKey: Keycode): Control =

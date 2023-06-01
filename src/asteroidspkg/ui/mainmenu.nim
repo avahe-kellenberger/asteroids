@@ -25,15 +25,10 @@ proc newMainMenu*(): MainMenu =
   result.createMainOptionsContainer()
   result.addChild(result.mainOptionsContainer)
 
-  result.controlsMenu = newControlsMenu()
+  let self = result
+  result.controlsMenu = newControlsMenu(proc() = self.goToMainMenu())
   result.controlsMenu.disableAndHide()
   result.addChild(result.controlsMenu)
-
-  let self = result
-  Input.onKeyEvent:
-    # TODO: We need to allow submenus to use the escape key
-    if key == K_ESCAPE and state.justPressed:
-      self.goToMainMenu()
 
 proc createMainOptionsContainer(this: MainMenu) =
   this.mainOptionsContainer = newUIComponent()
