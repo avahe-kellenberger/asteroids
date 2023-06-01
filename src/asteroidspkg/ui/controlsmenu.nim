@@ -31,10 +31,11 @@ proc newControlsMenu*(thrustKey: Keycode = K_W): ControlsMenu =
   initUIComponent(UIComponent result)
   result.stackDirection = StackDirection.Vertical
   result.alignHorizontal = Alignment.Center
-  result.alignVertical = Alignment.Center
+  result.alignVertical = Alignment.Start
+  result.margin = 48.0
 
   let title = newText(getTitleFont(), "Controls", WHITE)
-  title.margin = 12.0
+  title.margin = margin(12, 12, 12, 72)
   result.addChild(title)
 
   result.thrustControl = result.createControl("Thrust", thrustKey)
@@ -68,16 +69,15 @@ proc createControl(this: ControlsMenu, name: string, currentKey: Keycode): Contr
   container.alignHorizontal = Alignment.SpaceEvenly
   container.alignVertical = Alignment.Center
   container.margin = 12.0
-  container.width = ratio(0.5)
+  container.width = ratio(0.3)
   this.addChild(container)
-
-  # TODO: Used for debugging, delete later
-  container.borderWidth = 2.0
-  container.borderColor = RED
 
   let keyText = newText(getMenuItemFont(), name & ":", WHITE)
   container.addChild(keyText)
   container.height = keyText.height
+
+  # Spacer to nicely align buttons
+  container.addChild(newUIComponent())
 
   let keyButton = newText(getMenuItemFont(), $currentKey, WHITE)
   keyButton.textAlignHorizontal = TextAlignment.Center
