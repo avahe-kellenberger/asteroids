@@ -4,6 +4,9 @@ import asteroidspkg/stars/star as starModule
 import asteroidspkg/stars/starfield as starfieldModule
 import asteroidspkg/ui/mainmenu as mainmenuModule
 import asteroidspkg/ui/controlsmenu as controlsmenuModule
+import asteroidspkg/controls as controlsModule
+
+loadControlsFromFile()
 
 const
   windowWidth = 1920
@@ -49,6 +52,7 @@ mainMenu.playText.onPressed:
 
 mainMenu.exitText.onPressed:
   Game.stop()
+  saveControlsToFile()
 
 # Load custom cursor
 block:
