@@ -1,4 +1,7 @@
 import shade
+
+import std/exitprocs
+
 import asteroidspkg/player as playerModule
 import asteroidspkg/stars/star as starModule
 import asteroidspkg/stars/starfield as starfieldModule
@@ -52,7 +55,6 @@ mainMenu.playText.onPressed:
 
 mainMenu.exitText.onPressed:
   Game.stop()
-  saveControlsToFile()
 
 # Load custom cursor
 block:
@@ -72,4 +74,7 @@ block:
 #   echo "Error playing music"
 
 Game.start()
+
+# Save changes to any controls when the application exits.
+addExitProc(saveControlsToFile)
 
