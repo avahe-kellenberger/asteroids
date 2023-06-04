@@ -3,15 +3,21 @@ import controls
 
 const
   playerScale = 2.0
-  acceleration = 100.0
-  decceleration = 20.0
-  maxSpeed = 10_000.0
+  acceleration = 10.0
+  decceleration = 0.992
+  maxSpeed = 500.0
 
 type Player* = ref object of PhysicsBody
   sprite*: Sprite
 
 proc createCollisionShape(scale: float): CollisionShape =
-  result = newCollisionShape(aabb(-8, -13, 8, 13).getScaledInstance(scale))
+  let poly = newPolygon([
+    vector(-8, -8),
+    vector(7, -1),
+    vector(7, 0),
+    vector(-8, 7),
+  ])
+  result = newCollisionShape(poly.getScaledInstance(scale))
   result.material = initMaterial(1, 0, 0.97)
 
 proc createPlayerSprite(scale: float): Sprite =
@@ -28,14 +34,15 @@ method update*(this: Player, deltaTime: float) =
   procCall PhysicsBody(this).update(deltaTime)
 
   # Rotate player to cursor
+  let thisLoc = this.getLocation()
   let mouseLocInWorld = Game.scene.camera.screenToWorldCoord(Input.mouseLocation())
-  let angleRadiansToMouse = this.getLocation().getAngleRadiansTo(mouseLocInWorld)
+  let angleRadiansToMouse = thisLoc.getAngleRadiansTo(mouseLocInWorld)
   let angleToMouse = angleRadiansToMouse.toAngle()
   this.rotation = angleToMouse
   this.sprite.rotation = angleToMouse
 
   if Input.isKeyPressed(slowDownControl.key):
-    this.velocity *= 0.992
+    this.velocity *= decceleration
     if this.velocity.getMagnitude() <= (maxSpeed / 50):
       this.velocity = VECTOR_ZERO
 
@@ -43,7 +50,11 @@ method update*(this: Player, deltaTime: float) =
     this.velocity += fromRadians(angleRadiansToMouse) * acceleration
     this.velocity = this.velocity.maxMagnitude(maxSpeed)
 
+  # Move the camera to track a position between the player and cursor.
+  let cameraTrackedPosition = thisLoc + ((mouseLocInWorld - thisLoc) * 0.33)
+  Game.scene.camera.move((cameraTrackedPosition - Game.scene.camera.getLocation()) * (5 * deltaTime))
 
 Player.renderAsChildOf(PhysicsBody):
   this.sprite.render(ctx, this.x + offsetX, this.y + offsetY)
+  this.collisionShape.stroke(ctx, this.x + offsetX, this.y + offsetY, RED)
 
