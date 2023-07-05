@@ -90,15 +90,20 @@ block:
   setCursor(cursor)
   freeSurface(cursorSurface)
 
-# Play some music
-let someSong = loadMusic("./assets/music/bipolarity.ogg")
-if someSong != nil:
-  fadeInMusic(someSong, 2.0)
-else:
-  echo "Error playing music"
+when defined(release):
+  # Play some music
+  let someSong = loadMusic("./assets/music/bipolarity.ogg")
+  if someSong != nil:
+    fadeInMusic(someSong, 2.0)
+  else:
+    echo "Error playing music"
 
 Game.start()
 
 # Save changes to any controls when the application exits.
 addExitProc(saveControlsToFile)
+
+when defined(debug):
+  echo player.particleEmitter.len()
+  echo player.particleEmitter.numLivingParticles()
 
