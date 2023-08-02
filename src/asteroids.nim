@@ -104,6 +104,6 @@ Game.start()
 addExitProc(saveControlsToFile)
 
 when defined(debug):
-  echo player.particleEmitter.len()
   echo player.particleEmitter.numLivingParticles()
+  echo player.particleEmitter.len()
 

@@ -87,7 +87,7 @@ proc pruneLayers(this: StarField) =
 
     # Remove the first layer and preserve layer order.
     this.layers.delete(0)
-    for child in nextLayer.childIterator:
+    for child in nextLayer:
       discard this.starPool.recycle(Star child)
       nextLayer.removeChild(child)
 
@@ -158,7 +158,7 @@ StarField.renderAsNodeChild:
     let layer = this.layers[i]
     let dist = abs(SPAWN_DISTANCE - layer.z)
     let alpha = min(1.0, dist / FADE_DISTANCE)
-    layer.forEachChild:
+    for child in layer:
       Star(child).sprite.alpha = alpha
     ctx.renderLayer(this.camera, layer)
 

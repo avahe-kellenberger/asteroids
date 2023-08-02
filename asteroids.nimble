@@ -10,7 +10,7 @@ bin = @["asteroids"]
 
 # Dependencies
 requires "nim >= 1.6.12"
-requires "https://github.com/avahe-kellenberger/shade"
+requires "https://github.com/einheit-tech/shade"
 
 task runr, "Runs the game":
   exec "nim r -d:release src/asteroids.nim"
