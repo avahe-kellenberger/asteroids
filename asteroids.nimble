@@ -11,6 +11,7 @@ bin = @["asteroids"]
 # Dependencies
 requires "nim >= 1.6.12"
 requires "https://github.com/einheit-tech/shade"
+requires "parsetoml >= 0.7.0"
 
 task runr, "Runs the game":
   exec "nim r -d:release src/asteroids.nim"

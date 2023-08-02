@@ -74,6 +74,11 @@ Input.onKeyEvent:
     gameIsPlaying = false
     player.velocity = VECTOR_ZERO
 
+Input.onMousePressed:
+  if button == MouseButton.LEFT.ord:
+    # TODO: FIRE!
+    echo "CLICK"
+
 mainMenu.playText.onPressed:
   startGame()
 
